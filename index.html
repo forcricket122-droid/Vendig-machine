@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vending Machine</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f9fafc;color:#222}
+    header{background:#0b84ff;color:#fff;padding:15px;font-size:20px;font-weight:bold}
+    .container{max-width:800px;margin:20px auto;padding:0 15px}
+    .products{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+    .card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 3px 8px rgba(0,0,0,0.1)}
+    .card img{width:100%;height:120px;object-fit:contain}
+    .price{font-weight:600;margin-top:4px}
+    button{background:#0b84ff;color:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer}
+    button:hover{background:#096cd0}
+    .view{display:none}
+    .view.active{display:block}
+    .cart-item{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:10px;border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,0.08)}
+    .cart-list{display:flex;flex-direction:column;gap:10px}
+    footer{text-align:center;color:#888;font-size:13px;padding:12px}
+  </style>
+</head>
+<body>
+  <header>My Vending Machine</header>
+
+  <main class="container">
+    <!-- Products -->
+    <section id="products-view" class="view active">
+      <h2>Products</h2>
+      <div class="products" id="products"></div>
+    </section>
+
+    <!-- Cart -->
+    <section id="cart-view" class="view">
+      <h2>Your Cart</h2>
+      <div class="cart-list" id="cart-list"></div>
+      <div style="margin-top:15px;font-weight:bold">Total: <span id="cart-total">₹0</span></div>
+      <div style="margin-top:12px">
+        <button id="checkout">Checkout</button>
+        <button id="back-to-products">Back</button>
+      </div>
+    </section>
+
+    <!-- Checkout -->
+    <section id="checkout-view" class="view">
+      <h2>Checkout</h2>
+      <p>Quantity and Payment options will be handled here.</p>
+      <div style="margin-top:12px">
+        <button id="done-btn">Done</button>
+      </div>
+    </section>
+
+    <!-- Done -->
+    <section id="done-view" class="view">
+      <h2>Order Complete ✅</h2>
+      <p>Thank you for your purchase!</p>
+      <button id="new-order">New Order</button>
+    </section>
+  </main>
+
+  <footer>Demo vending machine website</footer>
+
+  <script>
+    const productsData = [
+      {id:1,name:'Lays Chips',price:20,img:'https://i.imgur.com/2M9X6aC.png'},
+      {id:2,name:'Chocolate Bar',price:35,img:'https://i.imgur.com/8wX4zKg.png'},
+      {id:3,name:'Cold Drink (330ml)',price:50,img:'https://i.imgur.com/Z6aZgQG.png'},
+      {id:4,name:'Biscuit Pack',price:25,img:'https://i.imgur.com/Kxq5k8y.png'}
+    ];
+
+    const state = {cart:{}};
+
+    function $(id){return document.getElementById(id)}
+
+    function showView(id){
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      $(id).classList.add('active');
+    }
+
+    function renderProducts(){
+      const wrap = $('products'); wrap.innerHTML='';
+      productsData.forEach(p=>{
+        const card=document.createElement('div'); card.className='card';
+        card.innerHTML = `
+          <img src="${p.img}" alt="${p.name}" />
+          <div>${p.name}</div>
+          <div class="price">MRP: ₹${p.price}</div>
+          <button data-id="${p.id}" class="add">Add to Cart</button>`;
+        wrap.appendChild(card);
+      });
+      wrap.querySelectorAll('.add').forEach(b=>b.addEventListener('click',e=>{
+        const id=+e.target.dataset.id;
+        if(!state.cart[id]) state.cart[id]=0;
+        state.cart[id]++;
+        renderCart();
+        showView('cart-view');
+      }));
+    }
+
+    function renderCart(){
+      const list=$('cart-list'); list.innerHTML='';
+      let total=0;
+      Object.keys(state.cart).forEach(id=>{
+        const p=productsData.find(x=>x.id==id);
+        const qty=state.cart[id];
+        total += p.price*qty;
+        const item=document.createElement('div'); item.className='cart-item';
+        item.innerHTML = `<div>${p.name} (x${qty})</div><div>₹${p.price*qty}</div>`;
+        list.appendChild(item);
+      });
+      $('cart-total').innerText = '₹' + total;
+    }
+
+    // buttons
+    $('back-to-products').addEventListener('click',()=>showView('products-view'));
+    $('checkout').addEventListener('click',()=>showView('checkout-view'));
+    $('done-btn').addEventListener('click',()=>showView('done-view'));
+    $('new-order').addEventListener('click',()=>{state.cart={};renderCart();showView('products-view');});
+
+    // init
+    renderProducts();
+  </script>
+</body>
+</html>
